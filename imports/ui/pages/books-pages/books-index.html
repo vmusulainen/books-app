@@ -1,6 +1,9 @@
 <template name="Books">
     <h1>Books</h1>
 
+    <div style="margin-bottom: 1em;">
+        <button data-action="book-create">Create Book</button>
+    </div>
     {{#each book in books}}
         <div>
             <span>_id: {{book._id}}</span>

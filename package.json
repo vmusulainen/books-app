@@ -10,6 +10,7 @@
   "dependencies": {
     "@babel/runtime": "^7.11.2",
     "jquery": "^3.5.1",
+    "js-event-bus": "^1.0.3",
     "meteor-node-stubs": "^1.0.1"
   },
   "meteor": {
