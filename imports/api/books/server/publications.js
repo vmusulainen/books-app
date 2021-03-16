@@ -1,7 +1,6 @@
 import EventBus from 'js-event-bus';
 
-const eventBus = EventBus();
-
+const eventBus = new EventBus();
 
 Meteor.publish('books.all', function () {
     const items = {};
@@ -43,8 +42,8 @@ Meteor.publish('books.all', function () {
             });
     }, 10000);
 
-    eventBus.on('books.create', () => {
-        console.log('Forced: refreshing data');
+    const eventCallback = () => {
+        console.log('event callback')
         fetch('http://localhost:4000/books')
             .then((res) => {
                 return res.json();
@@ -62,20 +61,14 @@ Meteor.publish('books.all', function () {
                     }
                 });
             });
+    }
 
 
-
-
-    });
-
-
-    eventBus.on('books.create', () => {
-        console.log('empty event handler')
-    });
-
+    eventBus.on('books.create', eventCallback);
 
     this.onStop(() => {
-        eventBus.die('books.create');
+        console.log('on publications stopped');
+        eventBus.detach('books.create', eventCallback);
         Meteor.clearInterval(timeInterval);
     })
 
