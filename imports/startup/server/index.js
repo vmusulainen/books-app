@@ -1,0 +1,1 @@
+import '../../api/books/server/publications';
