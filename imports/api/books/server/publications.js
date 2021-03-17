@@ -83,6 +83,8 @@ Meteor.publish('books.all', function () {
     });
 });
 
+
+
 Meteor.methods({
     'books.create'(data) {
         fetch('http://localhost:4000/books', {
