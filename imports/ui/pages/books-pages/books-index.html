@@ -4,6 +4,19 @@
     <div style="margin-bottom: 1em;">
         <button data-action="book-create">Create Book</button>
     </div>
+
+    <div style="margin-top: 1em;margin-bottom: 1em;">
+        <span>page: {{pagination.page}}</span>
+        <span>page count: {{pagination.page_count}}</span>
+        <span>item count: {{pagination.total_item_count}}</span>
+    </div>
+
+    <div style="margin-top: 1em;margin-bottom: 1em;">
+        Items per page: <input id="perPage" value="{{pagination.per_page}}">
+        <button data-action="prev-page">Prev Page</button>
+        <button data-action="next-page">Next Page</button>
+    </div>
+
     {{#each book in books}}
         <div>
             <span>_id: {{book._id}}</span>
@@ -11,4 +24,6 @@
             <span>Title: {{book.title}}</span>
         </div>
     {{/each}}
+
+
 </template>

@@ -1,0 +1,1 @@
+export const PaginationCounts = new Mongo.Collection('pagination-counts');
