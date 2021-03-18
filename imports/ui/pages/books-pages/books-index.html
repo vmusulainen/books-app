@@ -1,5 +1,25 @@
+<template name="BookShelf"> {{>Books}} </template>
+
 <template name="Books">
     <h1>Books</h1>
+
+    <fieldset>
+        <legend>Pagination</legend>
+        <div style="margin-top: 1em; margin-bottom: 1em">
+            <span>page: {{pagination.page}}</span>
+            <span>page count: {{pagination.page_count}}</span>
+            <span>item count: {{pagination.total_item_count}}</span>
+        </div>
+
+        <div style="margin-top: 1em; margin-bottom: 1em">
+            Items per page: <input id="perPage" data-id="{{subscriptionId}}" value="{{pagination.per_page}}" />
+            <button data-action="prev-page" data-id="{{subscriptionId}}">Prev Page</button>
+            <button data-action="next-page" data-id="{{subscriptionId}}">Next Page</button>
+        </div>
+    </fieldset>
+    <br>
+    <br>
+
     <form name="create">
         <fieldset>
             <legend>Create Book</legend>
@@ -8,24 +28,24 @@
             <button>Create</button>
         </fieldset>
     </form>
-    <br />
+    <br>
+    <br>
+
     {{#each book in books}}
     <fieldset>
-        <legend>Book Info</legend>
-        <div>
+        <h2>
             <span>_id: {{book._id}}</span>
             <span>Author: {{book.author}}</span>
             <span>Title: {{book.title}}</span>
-        </div>
-        <br>
+        </h2>
+        <form name="delete" data-id="{{book._id}}">
+            <button>Delete</button>
+        </form>
+        <br />
         <form name="edit" data-id="{{book._id}}">
             <input name="author" type="text" value="{{book.author}}" />
             <input name="title" type="text" value="{{book.title}}" />
             <button>Update</button>
-        </form>
-        <br>
-        <form name="delete" data-id="{{book._id}}">
-            <button>Delete</button>
         </form>
     </fieldset>
     <br />
