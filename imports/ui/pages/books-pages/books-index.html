@@ -1,8 +1,13 @@
+<template name="BookShelf">
+    {{>Books}}
+</template>
+
 <template name="Books">
     <h1>Books</h1>
 
     <div style="margin-bottom: 1em;">
         <button data-action="book-create">Create Book</button>
+        <button data-action="book-delete">Delete Book</button>
     </div>
 
     <div style="margin-top: 1em;margin-bottom: 1em;">
@@ -12,10 +17,11 @@
     </div>
 
     <div style="margin-top: 1em;margin-bottom: 1em;">
-        Items per page: <input id="perPage" value="{{pagination.per_page}}">
-        <button data-action="prev-page">Prev Page</button>
-        <button data-action="next-page">Next Page</button>
+        Items per page: <input id="perPage" data-id="{{subscriptionId}}" value="{{pagination.per_page}}">
+        <button data-action="prev-page" data-id="{{subscriptionId}}">Prev Page</button>
+        <button data-action="next-page" data-id="{{subscriptionId}}">Next Page</button>
     </div>
+
 
     {{#each book in books}}
         <div>
@@ -24,6 +30,5 @@
             <span>Title: {{book.title}}</span>
         </div>
     {{/each}}
-
 
 </template>
