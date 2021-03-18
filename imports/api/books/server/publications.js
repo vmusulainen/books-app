@@ -59,7 +59,6 @@ Meteor.publish('books.all', function (page, perPage) {
         });
 
 
-    /*
         const timeInterval = Meteor.setInterval(() => {
             fetch(endpoint)
                 .then((res) => {
@@ -69,7 +68,6 @@ Meteor.publish('books.all', function (page, perPage) {
                     mergeBox(items, json, collectionName, this);
                 });
         }, 10000);
-    */
 
     const eventCallback = () => {
         console.log('event callback')
@@ -88,7 +86,7 @@ Meteor.publish('books.all', function (page, perPage) {
     this.onStop(() => {
         console.log('on publications stopped');
         eventBus.detach('books.create', eventCallback);
-        //Meteor.clearInterval(timeInterval);
+        Meteor.clearInterval(timeInterval);
         PaginationCounts.remove({_id: `sub-${this._subscriptionId}`});
     })
 
