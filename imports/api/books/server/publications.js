@@ -5,13 +5,23 @@ import {PaginationCounts} from '../../pagination-counts/pagination-counts';
 const eventBus = new EventBus();
 
 const mergeBox = function (items, data, collectionName, publication) {
-    console.log('data', data)
     const newItems = data.items.filter((each) => {
         return items[each.id] == null
     });
     newItems.forEach((each) => {
         items[each.id] = each;
+        each.subscriptionId = `sub-${publication._subscriptionId}`;
         publication.added(collectionName, each.id, each);
+    });
+
+    const keys = Object.keys(items).map((each) => {return parseInt(each)});
+    const removedKeys = keys.filter((eachKey) => {
+        return !data.items.some((eachItem) => {return eachItem.id === eachKey});
+    });
+
+    removedKeys.forEach((each) => {
+        delete items[each];
+        publication.removed(collectionName, each);
     });
 
     const changedItems = data.items.filter((each) => {
@@ -19,6 +29,7 @@ const mergeBox = function (items, data, collectionName, publication) {
     });
     changedItems.forEach((each) => {
         items[each.id] = each;
+        each.subscriptionId = `sub-${publication._subscriptionId}`;
         publication.changed(collectionName, each.id, each);
     });
 
@@ -34,7 +45,6 @@ const mergeBox = function (items, data, collectionName, publication) {
 
 }
 
-
 Meteor.publish('books.all', function (page, perPage) {
     const collectionName = 'books';
     const endpoint = `http://localhost:4000/books?page=${page}&per_page=${perPage}`;
@@ -45,21 +55,21 @@ Meteor.publish('books.all', function (page, perPage) {
             return res.json();
         })
         .then((json) => {
-            console.log(json);
             mergeBox(items, json, collectionName, this);
         });
 
 
-    const timeInterval = Meteor.setInterval(() => {
-        fetch(endpoint)
-            .then((res) => {
-                return res.json();
-            })
-            .then((json) => {
-                console.log(json);
-                mergeBox(items, json, collectionName, this);
-            });
-    }, 10000);
+    /*
+        const timeInterval = Meteor.setInterval(() => {
+            fetch(endpoint)
+                .then((res) => {
+                    return res.json();
+                })
+                .then((json) => {
+                    mergeBox(items, json, collectionName, this);
+                });
+        }, 10000);
+    */
 
     const eventCallback = () => {
         console.log('event callback')
@@ -73,11 +83,12 @@ Meteor.publish('books.all', function (page, perPage) {
     }
 
     eventBus.on('books.create', eventCallback);
+    eventBus.on('books.delete', eventCallback);
 
     this.onStop(() => {
         console.log('on publications stopped');
         eventBus.detach('books.create', eventCallback);
-        Meteor.clearInterval(timeInterval);
+        //Meteor.clearInterval(timeInterval);
         PaginationCounts.remove({_id: `sub-${this._subscriptionId}`});
     })
 
@@ -98,6 +109,19 @@ Meteor.methods({
             })
             .then((json) => {
                 eventBus.emit('books.create');
+            });
+    },
+    'books.delete'(id) {
+        fetch(`http://localhost:4000/books/${id}`, {
+            method: 'delete',
+//            body: JSON.stringify(data),
+            headers: {'Content-Type': 'application/json'},
+        })
+            .then((res) => {
+                return res.json()
+            })
+            .then((json) => {
+                eventBus.emit('books.delete');
             });
     }
 
