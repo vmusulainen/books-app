@@ -91,16 +91,11 @@ Meteor.publish('books.all', function (page, perPage) {
     const eventCallback = () => {
         getBooks(false);
     };
-    eventBus.on('books.create', eventCallback);
-    eventBus.on('books.delete', eventCallback);
-    eventBus.on('books.update', eventCallback);
+    eventBus.on('books.refresh', eventCallback);
 
     this.onStop(() => {
         isPublishStop = true;
-        console.log('on publications stopped');
-        eventBus.detach('books.create', eventCallback);
-        eventBus.detach('books.update', eventCallback);
-        eventBus.detach('books.delete', eventCallback);
+        eventBus.detach('books.refresh', eventCallback);
         PaginationCounts.remove({ _id: `sub-${this._subscriptionId}` });
     });
 
@@ -118,7 +113,7 @@ Meteor.methods({
                 return res.json();
             })
             .then((json) => {
-                eventBus.emit('books.create');
+                eventBus.emit('books.refresh');
             });
     },
     'books.delete'(id) {
@@ -131,7 +126,7 @@ Meteor.methods({
                 return res.json();
             })
             .then((json) => {
-                eventBus.emit('books.delete');
+                eventBus.emit('books.refresh');
             });
     },
     'books.update'({ id, data }) {
@@ -144,7 +139,7 @@ Meteor.methods({
                 return res.json();
             })
             .then((json) => {
-                eventBus.emit('books.update', json);
+                eventBus.emit('books.refresh', json);
             });
     },
 });
