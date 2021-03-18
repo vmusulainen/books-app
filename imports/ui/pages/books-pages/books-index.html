@@ -1,14 +1,33 @@
 <template name="Books">
     <h1>Books</h1>
-
-    <div style="margin-bottom: 1em;">
-        <button data-action="book-create">Create Book</button>
-    </div>
+    <form name="create">
+        <fieldset>
+            <legend>Create Book</legend>
+            <input name="author" type="text" value="author-{{now}}" />
+            <input name="title" type="text" value="title-{{now}}" />
+            <button>Create</button>
+        </fieldset>
+    </form>
+    <br />
     {{#each book in books}}
+    <fieldset>
+        <legend>Book Info</legend>
         <div>
             <span>_id: {{book._id}}</span>
             <span>Author: {{book.author}}</span>
             <span>Title: {{book.title}}</span>
         </div>
+        <br>
+        <form name="edit" data-id="{{book._id}}">
+            <input name="author" type="text" value="{{book.author}}" />
+            <input name="title" type="text" value="{{book.title}}" />
+            <button>Update</button>
+        </form>
+        <br>
+        <form name="delete" data-id="{{book._id}}">
+            <button>Delete</button>
+        </form>
+    </fieldset>
+    <br />
     {{/each}}
 </template>
