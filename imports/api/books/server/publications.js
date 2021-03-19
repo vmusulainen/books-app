@@ -50,56 +50,52 @@ const mergeBox = function (items, data, collectionName, publication) {
     );
 };
 
+async function getData(endpoint) {
+    try {
+        const response = await fetch(endpoint);
+
+        if (response.status === 200) {
+            const data = await response.json();
+            return data;
+        }
+    } catch (error) {
+        throw '[Poll] ' + error;
+    }
+}
+
+function poll(timer, func) {
+    const interval = setInterval(func, timer);
+    return () => {
+        clearInterval(interval);
+    };
+}
+
 Meteor.publish('books.all', function (page, perPage) {
+    const timer = 5 * 1000;
     const collectionName = 'books';
-    let startsCount = 0;
-    let isPublishStop = false;
     const endpoint = `http://localhost:4000/books?page=${page}&per_page=${perPage}`;
     const items = {};
-    const getBooks = async (isRecursive = true) => {
-        try {
-            if (isPublishStop) {
-                return;
-            }
-            const response = await fetch(endpoint);
-            if (response.status == 502) {
-                await getBooks();
-            } else if (response.status != 200) {
-                console.log(response.statusText);
-                await new Promise((resolve) => setTimeout(resolve, 1000));
-                await getBooks();
-            } else {
-                console.log('Timer: refreshing data');
-                const data = await response.json();
-                mergeBox(items, data, collectionName, this);
-                await new Promise((resolve) => setTimeout(resolve, 10000));
-                if (startsCount === 0) {
-                    this.ready();
-                }
-                if (isRecursive) {
-                    startsCount += 1;
-                    console.log('startCount', startsCount);
-                    await getBooks();
-                }
-            }
-        } catch (error) {
-            console.log('ErrOR', error);
-        }
+
+    const getBooks = async () => {
+        console.log('Timer publication');
+        const data = await getData(endpoint);
+        mergeBox(items, data, collectionName, this);
     };
 
-    getBooks(true);
-    const eventCallback = () => {
-        getBooks(false);
-    };
-    eventBus.on('books.refresh', eventCallback);
-
-    this.onStop(() => {
-        isPublishStop = true;
-        eventBus.detach('books.refresh', eventCallback);
-        PaginationCounts.remove({ _id: `sub-${this._subscriptionId}` });
+    getBooks().then(() => {
+        this.ready();
     });
 
-    this.ready();
+    const stopPoll = poll(timer, getBooks);
+
+    eventBus.on('books.refresh', getBooks);
+
+    this.onStop(() => {
+        stopPoll();
+        console.log('on publications stopped');
+        eventBus.detach('books.refresh', getBooks);
+        PaginationCounts.remove({ _id: `sub-${this._subscriptionId}` });
+    });
 });
 
 Meteor.methods({
