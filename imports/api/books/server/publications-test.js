@@ -75,7 +75,7 @@ Meteor.publish('books.all', function () {
 
 Meteor.methods({
     'books.create'(data) {
-        console.log(data);
+        console.log('books.create');
         fetch('http://localhost:4000/books', {
             method: 'post',
             body: JSON.stringify(data),

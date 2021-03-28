@@ -1,8 +1,4 @@
-import EventBus from 'js-event-bus';
-
 import { PaginationCounts } from '../../pagination-counts/pagination-counts';
-
-const eventBus = new EventBus();
 
 const mergeBox = function (items, data, collectionName, publication) {
     const newItems = data.items.filter((each) => {
@@ -73,7 +69,9 @@ function poll(timer, func) {
 Meteor.publish('books.all', function (page, perPage) {
     const timer = 5 * 1000;
     const collectionName = 'books';
-    const endpoint = `http://localhost:4000/books?page=${page}&per_page=${perPage}`;
+    const _page = page || 1;
+    const _perPage = perPage || 10;
+    const endpoint = `http://localhost:4000/books?page=${_page}&per_page=${_perPage}`;
     const items = {};
 
     const getBooks = async () => {
@@ -88,7 +86,7 @@ Meteor.publish('books.all', function (page, perPage) {
 
     const stopPoll = poll(timer, getBooks);
 
-    eventBus.on('books.refresh', getBooks);
+    Meteor.eventBus.on('books.refresh', getBooks);
 
     this.onStop(() => {
         stopPoll();
@@ -109,10 +107,11 @@ Meteor.methods({
                 return res.json();
             })
             .then((json) => {
-                eventBus.emit('books.refresh');
+                Meteor.eventBus.emit('books.refresh', null, 'ins');
             });
     },
     'books.delete'(id) {
+        console.log('delete')
         fetch(`http://localhost:4000/books/${id}`, {
             method: 'delete',
             //            body: JSON.stringify(data),
@@ -122,10 +121,11 @@ Meteor.methods({
                 return res.json();
             })
             .then((json) => {
-                eventBus.emit('books.refresh');
+                Meteor.eventBus.emit('books.refresh', null, 'del');
             });
     },
     'books.update'({ id, data }) {
+        console.log('update')
         fetch('http://localhost:4000/books/' + id, {
             method: 'put',
             body: JSON.stringify(data),
@@ -135,7 +135,7 @@ Meteor.methods({
                 return res.json();
             })
             .then((json) => {
-                eventBus.emit('books.refresh', json);
+                Meteor.eventBus.emit('books.refresh', null, 'upd');
             });
     },
 });

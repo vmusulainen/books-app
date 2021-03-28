@@ -2,6 +2,10 @@
 
 <template name="Books">
     <h1>Books</h1>
+<div>
+    <button data-action="subscribe">Subscribe</button>
+    <button data-action="unsubscribe">Unsubscribe</button>
+</div>
 
     <fieldset>
         <legend>Pagination</legend>
@@ -12,19 +16,18 @@
         </div>
 
         <div style="margin-top: 1em; margin-bottom: 1em">
-            Items per page: <input id="perPage" data-id="{{subscriptionId}}" value="{{pagination.per_page}}" />
+            Items per page: <input id="perPage" data-id="{{subscriptionId}}" value="{{pagination.per_page}}"/>
             <button data-action="prev-page" data-id="{{subscriptionId}}">Prev Page</button>
             <button data-action="next-page" data-id="{{subscriptionId}}">Next Page</button>
         </div>
     </fieldset>
     <br>
     <br>
-
     <form name="create">
         <fieldset>
             <legend>Create Book</legend>
-            <input name="author" type="text" value="author-{{now}}" />
-            <input name="title" type="text" value="title-{{now}}" />
+            <input name="author" type="text" value="author-{{now}}"/>
+            <input name="title" type="text" value="title-{{now}}"/>
             <button>Create</button>
         </fieldset>
     </form>
@@ -32,22 +35,15 @@
     <br>
 
     {{#each book in books}}
-    <fieldset>
-        <h2>
-            <span>_id: {{book._id}}</span>
-            <span>Author: {{book.author}}</span>
-            <span>Title: {{book.title}}</span>
-        </h2>
-        <form name="delete" data-id="{{book._id}}">
-            <button>Delete</button>
-        </form>
-        <br />
-        <form name="edit" data-id="{{book._id}}">
-            <input name="author" type="text" value="{{book.author}}" />
-            <input name="title" type="text" value="{{book.title}}" />
-            <button>Update</button>
-        </form>
-    </fieldset>
-    <br />
+        <div>
+            <form name="edit" data-id="{{book._id}}">
+                <span style="margin: 0px 10px 0px 0px; width: 500px">{{book._id}}</span>
+                <input name="author" type="text" value="{{book.author}}"/>
+                <input name="title" type="text" value="{{book.title}}"/>
+                <button type="submit">Update</button>
+                <button type="button" data-action="delete" data-book-id="{{book._id}}">Delete</button>
+            </form>
+        </div>
+        <br/>
     {{/each}}
 </template>
