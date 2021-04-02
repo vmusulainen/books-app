@@ -1,6 +1,7 @@
 import './books-index.html';
 import {Books} from '../../../api/books/books';
 import {PaginationCounts} from '../../../api/pagination-counts/pagination-counts';
+import {Messages} from "../../../api/messages/messages";
 
 Template.Books.onCreated(function () {
     this.subscriptionIdVar = new ReactiveVar();
@@ -15,6 +16,14 @@ Template.Books.onCreated(function () {
             this.subscribe('pagination-counts.subscription', id);
         });
     });*/
+
+    this.subscribe('messages');
+    const cursor = Messages.find({});
+    cursor.observeChanges({
+        added(id, fields) {
+            alert(fields.text);
+        }
+    })
 });
 
 Template.Books.helpers({
@@ -37,10 +46,12 @@ Template.Books.helpers({
 });
 
 Template.Books.events({
-    'click [data-action=subscribe]'(event, template){
-        template.subscriptionHandle = template.subscribe('mva.books.all', () => {console.log('ready')});
+    'click [data-action=subscribe]'(event, template) {
+        template.subscriptionHandle = template.subscribe('books.all', () => {
+            console.log('ready')
+        });
     },
-    'click [data-action=unsubscribe]'(event, template){
+    'click [data-action=unsubscribe]'(event, template) {
         if (template.subscriptionHandle != null) {
             template.subscriptionHandle.stop();
         }
@@ -66,42 +77,46 @@ Template.Books.events({
         const perPage = parseInt(event.currentTarget.value);
         template.perPageVar.set(perPage);
     },
-        'submit'(event, template) {
-            event.preventDefault();
+    'submit'(event, template) {
+        event.preventDefault();
 
-            const form = event.currentTarget;
-            const id = form.getAttribute('data-id');
-            const type = form.name;
-            let author, title, data;
-            switch (type) {
-                case 'create':
-                    author = form.author.value;
-                    title = form.title.value;
-                    if (!author && !title) {
-                        return;
+        const form = event.currentTarget;
+        const id = form.getAttribute('data-id');
+        const type = form.name;
+        let author, title, data;
+        switch (type) {
+            case 'create':
+                author = form.author.value;
+                title = form.title.value;
+                if (!author && !title) {
+                    return;
+                }
+                data = {author, title};
+
+                Meteor.call('books.create', data, (err, res) => {
+                    if (err) {
+                        console.log('err', err)
+                        alert(err.error)
                     }
-                    data = {author, title};
-                    Meteor.call('books.create', data, (err, res) => {
-                        if (err) {
-                            console.log('err', err);
-                        }
-                    });
-                    break;
-                case 'edit':
-                    author = form.author.value;
-                    title = form.title.value;
-                    if (!author && !title) {
-                        return;
+                });
+
+
+                break;
+            case 'edit':
+                author = form.author.value;
+                title = form.title.value;
+                if (!author && !title) {
+                    return;
+                }
+                data = {author, title};
+                Meteor.call('books.update', {id, data}, (err, res) => {
+                    if (err) {
+                        console.log('err', err);
                     }
-                    data = {author, title};
-                    Meteor.call('books.update', {id, data}, (err, res) => {
-                        if (err) {
-                            console.log('err', err);
-                        }
-                    });
-                    break;
-            }
-        },
+                });
+                break;
+        }
+    },
     'click [data-action=delete]'(event) {
         const id = event.currentTarget.getAttribute('data-book-id');
         Meteor.call('books.delete', id, (err, res) => {

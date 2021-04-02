@@ -1,4 +1,5 @@
-import { PaginationCounts } from '../../pagination-counts/pagination-counts';
+import {PaginationCounts} from '../../pagination-counts/pagination-counts';
+import {Messages} from '../../messages/messages';
 
 const mergeBox = function (items, data, collectionName, publication) {
     const newItems = data.items.filter((each) => {
@@ -34,7 +35,7 @@ const mergeBox = function (items, data, collectionName, publication) {
     });
 
     PaginationCounts.upsert(
-        { _id: `sub-${publication._subscriptionId}` },
+        {_id: `sub-${publication._subscriptionId}`},
         {
             $set: {
                 page: data.page,
@@ -91,31 +92,48 @@ Meteor.publish('books.all', function (page, perPage) {
     this.onStop(() => {
         stopPoll();
         console.log('on publications stopped');
-        eventBus.detach('books.refresh', getBooks);
-        PaginationCounts.remove({ _id: `sub-${this._subscriptionId}` });
+        Meteor.eventBus.detach('books.refresh', getBooks);
+        PaginationCounts.remove({_id: `sub-${this._subscriptionId}`});
     });
 });
+
+const errorHandler = function (response) {
+    if (!response.ok) {
+        throw new Error(response.statusText);
+    }
+    return response;
+}
 
 Meteor.methods({
     'books.create'(data) {
         fetch('http://localhost:4000/books', {
             method: 'post',
             body: JSON.stringify(data),
-            headers: { 'Content-Type': 'application/json' },
+            headers: {'Content-Type': 'application/json'},
         })
+            .then((res) => {
+                if (!res.ok) {
+                    throw new Error(res.statusText)
+                }
+            })
             .then((res) => {
                 return res.json();
             })
             .then((json) => {
                 Meteor.eventBus.emit('books.refresh', null, 'ins');
-            });
+            })
+            .catch((e) => {
+                Messages.insert({text: e.message});
+
+                Messages.insert({type: 'block', text: e.message});
+            })
     },
     'books.delete'(id) {
         console.log('delete')
         fetch(`http://localhost:4000/books/${id}`, {
             method: 'delete',
             //            body: JSON.stringify(data),
-            headers: { 'Content-Type': 'application/json' },
+            headers: {'Content-Type': 'application/json'},
         })
             .then((res) => {
                 return res.json();
@@ -124,12 +142,12 @@ Meteor.methods({
                 Meteor.eventBus.emit('books.refresh', null, 'del');
             });
     },
-    'books.update'({ id, data }) {
+    'books.update'({id, data}) {
         console.log('update')
         fetch('http://localhost:4000/books/' + id, {
             method: 'put',
             body: JSON.stringify(data),
-            headers: { 'Content-Type': 'application/json' },
+            headers: {'Content-Type': 'application/json'},
         })
             .then((res) => {
                 return res.json();
@@ -139,3 +157,17 @@ Meteor.methods({
             });
     },
 });
+
+
+Meteor.publish('messages', function () {
+
+        const cursor = Messages.find({userId: this.userId, read: false});
+        cursor.observeChanges({
+            added(id, fields){
+                this.added(id, 'messages', fields);
+                Messages.update({_id: id}, {$set: {read: true}});
+            }
+        })
+
+    }
+);
